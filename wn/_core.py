@@ -1164,7 +1164,7 @@ class Wordnet:
         lemmatizer: Optional[LemmatizeFunction] = None,
         search_all_forms: bool = True,
     ):
-        if self in self.cache:
+        if (lexicon, lang,expand,normalizer,lemmatizer,search_all_forms) in self.cache:
             return
         self.cache[(lexicon, lang,expand,normalizer,lemmatizer,search_all_forms)] = self
         # default mode means any lexicon is searched or expanded upon,
