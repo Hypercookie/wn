@@ -1103,8 +1103,6 @@ class Wordnet:
             str,
             str,
             str,
-            Optional[NormalizeFunction],
-            Optional[NormalizeFunction],
             bool,
         ],
         Any,
@@ -1112,18 +1110,16 @@ class Wordnet:
 
     @classmethod
     def __getCache(
-        cls, lexicon, lang, expand, normalizer, lemmatizer, search_all_forms
+        cls, lexicon, lang, expand, search_all_forms
     ):
         if (
             lexicon,
             lang,
             expand,
-            normalizer,
-            lemmatizer,
             search_all_forms,
         ) in cls.cache:
             return cls.cache[
-                (lexicon, lang, expand, normalizer, lemmatizer, search_all_forms)
+                (lexicon, lang, expand, search_all_forms)
             ]
 
     __slots__ = (
@@ -1148,7 +1144,7 @@ class Wordnet:
         lemmatizer: Optional[LemmatizeFunction] = None,
         search_all_forms: bool = True,
     ):
-        existing = cls.__getCache(lexicon, lang)
+        existing = cls.__getCache(lexicon, lang,expand,search_all_forms)
         if existing:
             return existing
         new = super(Wordnet, cls).__new__(cls)
@@ -1166,7 +1162,7 @@ class Wordnet:
     ):
         if self in self.cache:
             return
-        self.cache[(lexicon, lang)] = self
+        self.cache[(lexicon, lang,expand,search_all_forms)] = self
         # default mode means any lexicon is searched or expanded upon,
         # but relation traversals only target the source's lexicon
         self._default_mode = not lexicon and not lang
