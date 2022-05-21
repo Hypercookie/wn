@@ -9,7 +9,7 @@ from typing import (
     Dict,
     Set,
     Sequence,
-    Iterator,
+    Iterator, Any,
 )
 import warnings
 import textwrap
@@ -1022,7 +1022,6 @@ C = TypeVar('C', Word, Sense, Synset)
 
 
 class Wordnet:
-
     """Class for interacting with wordnet data.
 
     A wordnet object acts essentially as a filter by first selecting
@@ -1073,12 +1072,22 @@ class Wordnet:
         lemmatizer: A lemmatization function or :python:`None`.
 
     """
+    cache: dict[Tuple[str,str],Any] = {}
 
+    @classmethod
+    def __getCache(cls,lexicon,lang):
+        if (lexicon,lang) in cls.cache:
+            return cls.cache[(lexicon,lang)]
     __slots__ = ('_lexicons', '_lexicon_ids', '_expanded', '_expanded_ids',
                  '_default_mode', '_normalizer', 'lemmatizer',
                  '_search_all_forms',)
     __module__ = 'wn'
-
+    def __new__(cls, lexicon:str = None,*,lang:str = None, expand:str = None,normalizer: Optional[NormalizeFunction]=None,lemmatizer:Optional[LemmatizeFunction]=None,search_all_forms:bool = True):
+        existing = cls.__getCache(lexicon,lang)
+        if existing:
+            return existing
+        new = super(Wordnet,cls).__new__(cls)
+        return new
     def __init__(
         self,
         lexicon: str = None,
@@ -1089,6 +1098,9 @@ class Wordnet:
         lemmatizer: Optional[LemmatizeFunction] = None,
         search_all_forms: bool = True,
     ):
+        if self in self.cache:
+            return
+        self.cache[(lexicon,lang)]=self
         # default mode means any lexicon is searched or expanded upon,
         # but relation traversals only target the source's lexicon
         self._default_mode = (not lexicon and not lang)
