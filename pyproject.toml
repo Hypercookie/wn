@@ -5,14 +5,15 @@ build-backend = "flit_core.buildapi"
 [project]
 dynamic = ['version']
 
-name = "wn"
-description = "Wordnet interface library"
+name = "wn-fast"
+description = "Wordnet interface library (forked version with perfomance improvements)"
 readme = "README.md"
 requires-python = ">=3.6"
 license = {file = "LICENSE"}
 keywords = ["wordnet", "interlingual", "linguistics", "language", "library"]
 authors = [
-  {name = "Michael Wayne Goodman", email = "goodman.m.w@gmail.com"}
+  {name = "Michael Wayne Goodman", email = "goodman.m.w@gmail.com"},
+    {name = "Jannes Müller",email = "jannes@mlrjs.de"}
 ]
 classifiers = [
   "Development Status :: 4 - Beta",
@@ -56,8 +57,12 @@ doc = [
     "furo",
     "sphinx-copybutton",
 ]
-
+editor = [
+    "wn-editor"
+]
 [project.urls]
-homepage = "https://github.com/goodmami/wn"
+homepage = "https://github.com/Hypercookie/wn"
 documentation = "https://wn.readthedocs.io"
-changelog = "https://github.com/goodmami/wn/blob/main/CHANGELOG.md"
+changelog = "https://github.com/Hypercookie/wn/blob/main/CHANGELOG.md"
+[tool.flit.module]
+name = "wn"
