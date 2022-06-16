@@ -134,3 +134,7 @@ dmypy.json
 /.idea/inspectionProfiles/Project_Default.xml
 /.idea/vcs.xml
 /.idea/wn.iml
+
+
+# PyCharm
+.idea
