@@ -58,6 +58,6 @@ from wn._core import (
     Wordnet
 )
 from wn._queries import match_for_keyword_in_hypernym_graph
-__version__ = '0.9.1'
+__version__ = '0.9.2'
 
 
