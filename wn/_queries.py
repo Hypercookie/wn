@@ -12,29 +12,28 @@ import wn
 from wn._types import Metadata
 from wn._db import connect, NON_ROWID
 
-
 # Local Types
 
 _Pronunciation = Tuple[
-    str,   # value
-    str,   # variety
-    str,   # notation
+    str,  # value
+    str,  # variety
+    str,  # notation
     bool,  # phonemic
-    str,   # audio
+    str,  # audio
 ]
 _Tag = Tuple[str, str]  # tag, category
 _Form = Tuple[
-    str,            # form
+    str,  # form
     Optional[str],  # id
     Optional[str],  # script
-    int             # rowid
+    int  # rowid
 ]
 _Word = Tuple[
-    str,          # id
-    str,          # pos
+    str,  # id
+    str,  # pos
     List[_Form],  # forms
-    int,          # lexid
-    int,          # rowid
+    int,  # lexid
+    int,  # rowid
 ]
 _Synset = Tuple[
     str,  # id
@@ -54,34 +53,70 @@ _Sense = Tuple[
 _Sense_Relation = Tuple[str, int, str, str, str, int, int]  # relname, relid,  *_Sense
 _Count = Tuple[int, int]  # count, count_id
 _SyntacticBehaviour = Tuple[
-    str,       # id
-    str,       # frame
+    str,  # id
+    str,  # frame
     List[str]  # sense ids
 ]
 _ILI = Tuple[
     Optional[str],  # id
-    str,            # status
+    str,  # status
     Optional[str],  # definition
-    int,            # rowid
+    int,  # rowid
 ]
 _Lexicon = Tuple[
-    int,       # rowid
-    str,       # id
-    str,       # label
-    str,       # language
-    str,       # email
-    str,       # license
-    str,       # version
-    str,       # url
-    str,       # citation
-    str,       # logo
+    int,  # rowid
+    str,  # id
+    str,  # label
+    str,  # language
+    str,  # email
+    str,  # license
+    str,  # version
+    str,  # url
+    str,  # citation
+    str,  # logo
     Metadata,  # metadata
 ]
 
 
+def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str],cur = connect().cursor()) -> Iterator[str]:
+    query = f'''
+    WITH sy AS (SELECT DISTINCT s3.synset_rowid
+            FROM forms f
+                     JOIN senses s ON f.entry_rowid = s.entry_rowid
+                     JOIN senses s1 ON s.synset_rowid = s1.synset_rowid
+                     JOIN forms f2 ON s1.entry_rowid = f2.entry_rowid
+                     JOIN senses s3 ON f2.entry_rowid = s3.entry_rowid
+            WHERE f2.form = ?),
+     graph AS (SELECT source_rowid AS sid1, target_rowid AS sid2
+               FROM synsets
+                        JOIN synset_relations sr ON synsets.rowid = sr.source_rowid
+                        JOIN relation_types rt ON sr.type_rowid = rt.rowid
+               WHERE type = 'hypernym'
+                 AND source_rowid IN sy),
+     relations AS (SELECT sid1, sid2
+                   FROM graph
+                   UNION ALL
+                   SELECT sr.source_rowid AS sid1, sr.target_rowid AS sid2
+                   FROM relations rvr
+                            JOIN synset_relations sr ON rvr.sid2 = sr.source_rowid
+                            JOIN relation_types r ON sr.type_rowid = r.rowid
+                   WHERE type = 'hypernym'),
+     fr AS (SELECT f2.form
+            FROM relations
+                     JOIN senses ON relations.sid2 = senses.synset_rowid
+                     JOIN forms f2 ON senses.entry_rowid = f2.entry_rowid)
+SELECT DISTINCT fr.form AS keyword
+FROM fr
+WHERE fr.form IN ({_qs(keywords)})
+    '''
+    for row in cur.execute(query, ([word] + keywords)):
+        yield row
+
+
+
 def find_lexicons(
-    lexicon: str,
-    lang: str = None,
+        lexicon: str,
+        lang: str = None,
 ) -> Iterator[_Lexicon]:
     cur = connect().cursor()
     found = False
@@ -175,9 +210,9 @@ def get_lexicon_extensions(rowid: int, depth: int = -1) -> List[int]:
 
 
 def find_ilis(
-    id: str = None,
-    status: str = None,
-    lexicon_rowids: Sequence[int] = None,
+        id: str = None,
+        status: str = None,
+        lexicon_rowids: Sequence[int] = None,
 ) -> Iterator[_ILI]:
     if status != 'proposed':
         yield from _find_existing_ilis(
@@ -188,9 +223,9 @@ def find_ilis(
 
 
 def _find_existing_ilis(
-    id: str = None,
-    status: str = None,
-    lexicon_rowids: Sequence[int] = None,
+        id: str = None,
+        status: str = None,
+        lexicon_rowids: Sequence[int] = None,
 ) -> Iterator[_ILI]:
     query = '''
         SELECT DISTINCT i.id, ist.status, i.definition, i.rowid
@@ -219,8 +254,8 @@ def _find_existing_ilis(
 
 
 def find_proposed_ilis(
-    synset_rowid: int = None,
-    lexicon_rowids: Sequence[int] = None,
+        synset_rowid: int = None,
+        lexicon_rowids: Sequence[int] = None,
 ) -> Iterator[_ILI]:
     query = '''
         SELECT null, "proposed", definition, rowid
@@ -244,12 +279,12 @@ def find_proposed_ilis(
 
 
 def find_entries(
-    id: str = None,
-    forms: Sequence[str] = None,
-    pos: str = None,
-    lexicon_rowids: Sequence[int] = None,
-    normalized: bool = False,
-    search_all_forms: bool = False,
+        id: str = None,
+        forms: Sequence[str] = None,
+        pos: str = None,
+        lexicon_rowids: Sequence[int] = None,
+        normalized: bool = False,
+        search_all_forms: bool = False,
 ) -> Iterator[_Word]:
     conn = connect()
     cte = ''
@@ -301,12 +336,12 @@ def find_entries(
 
 
 def find_senses(
-    id: str = None,
-    forms: Sequence[str] = None,
-    pos: str = None,
-    lexicon_rowids: Sequence[int] = None,
-    normalized: bool = False,
-    search_all_forms: bool = False,
+        id: str = None,
+        forms: Sequence[str] = None,
+        pos: str = None,
+        lexicon_rowids: Sequence[int] = None,
+        normalized: bool = False,
+        search_all_forms: bool = False,
 ) -> Iterator[_Sense]:
     conn = connect()
     cte = ''
@@ -351,13 +386,13 @@ def find_senses(
 
 
 def find_synsets(
-    id: str = None,
-    forms: Sequence[str] = None,
-    pos: str = None,
-    ili: str = None,
-    lexicon_rowids: Sequence[int] = None,
-    normalized: bool = False,
-    search_all_forms: bool = False,
+        id: str = None,
+        forms: Sequence[str] = None,
+        pos: str = None,
+        ili: str = None,
+        lexicon_rowids: Sequence[int] = None,
+        normalized: bool = False,
+        search_all_forms: bool = False,
 ) -> Iterator[_Synset]:
     conn = connect()
     cte = ''
@@ -430,9 +465,9 @@ def get_synsets_for_ilis(
 
 
 def get_synset_relations(
-    source_rowids: Collection[int],
-    relation_types: Collection[str],
-    lexicon_rowids: Sequence[int],
+        source_rowids: Collection[int],
+        relation_types: Collection[str],
+        lexicon_rowids: Sequence[int],
 ) -> Iterator[_Synset_Relation]:
     conn = connect()
     params: List = []
@@ -462,8 +497,8 @@ def get_synset_relations(
 
 
 def get_definitions(
-    synset_rowid: int,
-    lexicon_rowids: Sequence[int],
+        synset_rowid: int,
+        lexicon_rowids: Sequence[int],
 ) -> List[Tuple[str, str, str, int]]:
     conn = connect()
     query = f'''
@@ -485,9 +520,9 @@ _SANITIZED_EXAMPLE_PREFIXES = {
 
 
 def get_examples(
-    rowid: int,
-    table: str,
-    lexicon_rowids: Sequence[int],
+        rowid: int,
+        table: str,
+        lexicon_rowids: Sequence[int],
 ) -> List[Tuple[str, str, int]]:
     conn = connect()
     prefix = _SANITIZED_EXAMPLE_PREFIXES.get(table)
@@ -503,8 +538,8 @@ def get_examples(
 
 
 def find_syntactic_behaviours(
-    id: str = None,
-    lexicon_rowids: Sequence[int] = None,
+        id: str = None,
+        lexicon_rowids: Sequence[int] = None,
 ) -> Iterator[_SyntacticBehaviour]:
     conn = connect()
     query = '''
@@ -533,8 +568,8 @@ def find_syntactic_behaviours(
 
 
 def get_syntactic_behaviours(
-    rowid: int,
-    lexicon_rowids: Sequence[int],
+        rowid: int,
+        lexicon_rowids: Sequence[int],
 ) -> List[str]:
     conn = connect()
     query = f'''
@@ -549,9 +584,9 @@ def get_syntactic_behaviours(
 
 
 def _get_senses(
-    rowid: int,
-    sourcetype: str,
-    lexicon_rowids: Sequence[int],
+        rowid: int,
+        sourcetype: str,
+        lexicon_rowids: Sequence[int],
 ) -> Iterator[_Sense]:
     conn = connect()
     query = f'''
@@ -577,9 +612,9 @@ def get_synset_members(rowid: int, lexicon_rowids: Sequence[int]) -> Iterator[_S
 
 
 def get_sense_relations(
-    source_rowid: int,
-    relation_types: Collection[str],
-    lexicon_rowids: Sequence[int],
+        source_rowid: int,
+        relation_types: Collection[str],
+        lexicon_rowids: Sequence[int],
 ) -> Iterator[_Sense_Relation]:
     params: List = []
     constraint = ''
@@ -660,7 +695,7 @@ _SANITIZED_METADATA_TABLES = {
 
 
 def get_metadata(
-    rowid: int, table: str
+        rowid: int, table: str
 ) -> Metadata:
     conn = connect()
     tablename = _SANITIZED_METADATA_TABLES.get(table)
@@ -745,5 +780,9 @@ def get_lexfile(synset_rowid: int) -> Optional[str]:
 
 
 def _qs(xs: Collection) -> str: return ','.join('?' * len(xs))
+
+
 def _vs(xs: Collection) -> str: return ','.join(['(?)'] * len(xs))
+
+
 def _kws(xs: Collection) -> str: return ','.join(f':{x}' for x in xs)
