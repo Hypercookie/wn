@@ -34,7 +34,6 @@ __all__ = (
     'ConfigurationError',
     'ProjectError',
     'WnWarning',
-    'match_for_keyword_in_hypernym_graph',
 )
 
 from wn._exceptions import (
@@ -57,7 +56,6 @@ from wn._core import (
     ili, ilis, ILI,
     Wordnet
 )
-from wn._queries import match_for_keyword_in_hypernym_graph
-__version__ = '0.9.2'
+__version__ = '0.9.3'
 
 

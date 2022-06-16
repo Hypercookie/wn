@@ -78,7 +78,7 @@ _Lexicon = Tuple[
 ]
 
 
-def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str],cur = connect().cursor()) -> Iterator[str]:
+def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str],cur = connect().cursor()) -> Iterator[Tuple[str]]:
     query = f'''
     WITH sy AS (SELECT DISTINCT s3.synset_rowid
             FROM forms f

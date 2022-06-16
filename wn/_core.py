@@ -50,6 +50,7 @@ from wn._queries import (
     get_adjposition,
     get_sense_counts,
     get_lexfile,
+    match_for_keyword_in_hypernym_graph
 )
 from wn import taxonomy
 
@@ -1109,6 +1110,10 @@ class Wordnet:
         ],
         Any,
     ] = {}
+
+    @classmethod
+    def get_keyword_matches(cls, term: str, keyword: List[str]) -> Iterator[Tuple[str]]:
+        return match_for_keyword_in_hypernym_graph(term, keyword)
 
     @classmethod
     def __getCache(
