@@ -56,6 +56,6 @@ from wn._core import (
     ili, ilis, ILI,
     Wordnet
 )
-__version__ = '0.9.3'
+__version__ = '0.9.3.1'
 
 
