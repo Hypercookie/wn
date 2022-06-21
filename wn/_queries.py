@@ -135,6 +135,8 @@ def match_for_keyword_in_hypernym_graph(
 ) -> Iterator[Tuple[str]]:
     global refreshing
     global created
+    if not wn.config.enable_keyword_table:
+        return
     if not keywords:
         keywords = wn.config.match_on_keywords
     if not keywords:
@@ -144,7 +146,7 @@ def match_for_keyword_in_hypernym_graph(
     if (
         not created
         and (keywords == wn.config.match_on_keywords or recompute_with_new_keywords)
-        and not refreshing
+        and not refreshing and wn.config.enable_keyword_table
     ):
         refreshing = True
         loop = asyncio.new_event_loop()
