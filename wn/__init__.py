@@ -69,4 +69,4 @@ from wn._core import (
     Wordnet,
 )
 
-__version__ = "0.9.3-5"
+__version__ = "0.9.4"
