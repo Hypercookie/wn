@@ -87,6 +87,7 @@ async def refresh_keyword_matching_table(keywords: List[str]) -> None:
         return
     global created
     global refreshing
+    refreshing = True
     if not wn.config.allow_multithreading:
         print("Hi")
         raise DatabaseError("Can not refresh table since multithreading is disabled")
@@ -140,7 +141,7 @@ CREATE INDEX k_index ON keyword_matches (word)
         refreshing = False
 
 
-def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str], cur=None, recompute_with_new_keywords=False) -> \
+def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str] = None, cur=None, recompute_with_new_keywords=False) -> \
 Iterator[Tuple[str]]:
     global refreshing
     global created

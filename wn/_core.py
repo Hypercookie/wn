@@ -1,3 +1,4 @@
+import asyncio
 from typing import (
     Type,
     TypeVar,
@@ -50,7 +51,7 @@ from wn._queries import (
     get_adjposition,
     get_sense_counts,
     get_lexfile,
-    match_for_keyword_in_hypernym_graph
+    match_for_keyword_in_hypernym_graph, refresh_keyword_matching_table
 )
 from wn import taxonomy
 
@@ -1112,7 +1113,12 @@ class Wordnet:
     ] = {}
 
     @classmethod
-    def get_keyword_matches(cls, term: str, keyword: List[str]) -> Iterator[str]:
+    def update_matching_table(cls,keyword: List[str]) -> None:
+        if wn.config.match_on_keywords:
+            asyncio.get_event_loop().create_task(refresh_keyword_matching_table(keyword))
+
+    @classmethod
+    def get_keyword_matches(cls, term: str, keyword: List[str] = None) -> Iterator[str]:
         return (x[0] for x in match_for_keyword_in_hypernym_graph(term, keyword))
 
     @classmethod
