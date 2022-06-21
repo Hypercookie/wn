@@ -83,6 +83,8 @@ created = False
 
 
 async def refresh_keyword_matching_table(keywords: List[str]) -> None:
+    if not keywords:
+        return
     global created
     global refreshing
     if not wn.config.allow_multithreading:
@@ -142,6 +144,10 @@ def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str], cur=None
 Iterator[Tuple[str]]:
     global refreshing
     global created
+    if not keywords:
+        keywords = wn.config.match_on_keywords
+    if not keywords:
+        return
     if cur is None:
         cur = connect().cursor()
     if not created and (keywords == wn.config.match_on_keywords or recompute_with_new_keywords) and not refreshing:
