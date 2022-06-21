@@ -25,6 +25,7 @@ class WNConfig:
         self._projects = {}
         self._dbpath = self._data_directory / DATABASE_FILENAME
         self.allow_multithreading = False
+        self.match_on_keywords = []
 
     @property
     def data_directory(self) -> Path:

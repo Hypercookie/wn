@@ -1,7 +1,7 @@
 """
 Database retrieval queries.
 """
-
+import asyncio
 from typing import (
     Optional, List, Tuple, Collection, Iterator, Sequence
 )
@@ -9,8 +9,9 @@ import itertools
 import sqlite3
 
 import wn
+from wn import DatabaseError
 from wn._types import Metadata
-from wn._db import connect, NON_ROWID
+from wn._db import connect, NON_ROWID, schema_hash
 
 # Local Types
 
@@ -77,10 +78,83 @@ _Lexicon = Tuple[
     Metadata,  # metadata
 ]
 
+refreshing = False
+created = False
 
-def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str],cur = None) -> Iterator[Tuple[str]]:
+
+async def refresh_keyword_matching_table(keywords: List[str]) -> None:
+    global created
+    global refreshing
+    if not wn.config.allow_multithreading:
+        print("Hi")
+        raise DatabaseError("Can not refresh table since multithreading is disabled")
+    else:
+        conn = connect()
+        cur = conn.cursor()
+        q1 = f'''
+        DROP TABLE IF EXISTS keyword_matches
+        '''
+        q2 = f'''
+        CREATE TABLE keyword_matches AS
+WITH sy AS (SELECT DISTINCT s3.synset_rowid
+            FROM forms f
+                     JOIN senses s ON f.entry_rowid = s.entry_rowid
+                     JOIN senses s1 ON s.synset_rowid = s1.synset_rowid
+                     JOIN forms f2 ON s1.entry_rowid = f2.entry_rowid
+                     JOIN senses s3 ON f2.entry_rowid = s3.entry_rowid),
+     graph AS (SELECT source_rowid AS sid1, target_rowid AS sid2, source_rowid AS start
+               FROM synsets
+                        JOIN synset_relations sr ON synsets.rowid = sr.source_rowid
+                        JOIN relation_types rt ON sr.type_rowid = rt.rowid
+               WHERE type = 'hypernym'
+                 AND source_rowid IN sy),
+     relations AS (SELECT sid1, sid2, start
+                   FROM graph
+                   UNION ALL
+                   SELECT sr.source_rowid AS sid1, sr.target_rowid AS sid2, start
+                   FROM relations rvr
+                            JOIN synset_relations sr ON rvr.sid2 = sr.source_rowid
+                            JOIN relation_types r ON sr.type_rowid = r.rowid
+                   WHERE type = 'hypernym'),
+     fr AS (SELECT f2.form, relations.start
+            FROM relations
+                     JOIN senses ON relations.sid2 = senses.synset_rowid
+                     JOIN forms f2 ON senses.entry_rowid = f2.entry_rowid)
+SELECT DISTINCT f3.form AS word, fr.form AS keyword
+FROM fr
+         JOIN senses ON senses.synset_rowid = fr.start
+         JOIN forms f3 ON senses.entry_rowid = f3.entry_rowid
+WHERE fr.form IN ({_qs(keywords)});
+        '''
+        q3 = f'''
+CREATE INDEX k_index ON keyword_matches (word)
+        '''
+        cur.execute(q1)
+        cur.execute(q2, keywords)
+        cur.execute(q3)
+        conn.commit()
+        print("ok")
+        created = True
+        refreshing = False
+
+
+def match_for_keyword_in_hypernym_graph(word: str, keywords: List[str], cur=None, recompute_with_new_keywords=False) -> \
+Iterator[Tuple[str]]:
+    global refreshing
+    global created
     if cur is None:
         cur = connect().cursor()
+    if not created and (keywords == wn.config.match_on_keywords or recompute_with_new_keywords) and not refreshing:
+        refreshing = True
+        asyncio.get_event_loop().create_task(refresh_keyword_matching_table(keywords))
+        print(schema_hash(connect()))
+    if not refreshing and keywords == wn.config.match_on_keywords:
+        query = f'''
+        SELECT keyword FROM keyword_matches WHERE word = ?
+        '''
+        for row in cur.execute(query, [word]):
+            yield row
+        return
     query = f'''
     WITH sy AS (SELECT DISTINCT s3.synset_rowid
             FROM forms f
@@ -113,7 +187,6 @@ WHERE fr.form IN ({_qs(keywords)})
     '''
     for row in cur.execute(query, ([word] + keywords)):
         yield row
-
 
 
 def find_lexicons(

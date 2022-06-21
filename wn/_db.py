@@ -36,6 +36,7 @@ NON_ROWID = 0  # imaginary rowid of non-existent row
 #
 COMPATIBLE_SCHEMA_HASHES = {
     '4c8ad03af5422d6979039ee2b80838d07c12d2c8',
+    '2ec5828f109abdcd61954bb967ec64324a8632f1'
 }
 
 

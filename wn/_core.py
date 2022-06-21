@@ -1112,8 +1112,8 @@ class Wordnet:
     ] = {}
 
     @classmethod
-    def get_keyword_matches(cls, term: str, keyword: List[str]) -> Iterator[Tuple[str]]:
-        return match_for_keyword_in_hypernym_graph(term, keyword)
+    def get_keyword_matches(cls, term: str, keyword: List[str]) -> Iterator[str]:
+        return (x[0] for x in match_for_keyword_in_hypernym_graph(term, keyword))
 
     @classmethod
     def __getCache(
