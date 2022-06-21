@@ -10,7 +10,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        ref: 'performance'
+        ref: 'hypercookie/performance'
     - name: Set up Python 3.8
       uses: actions/setup-python@v2
       with:
@@ -26,7 +26,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-          ref: 'performance'
+          ref: 'hypercookie/performance'
     - name: Set up Python
       uses: actions/setup-python@v1
       with:
