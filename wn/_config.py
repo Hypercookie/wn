@@ -1,4 +1,3 @@
-
 """
 Local configuration settings.
 """
@@ -14,18 +13,18 @@ from wn.constants import _WORDNET
 from wn._util import resources, short_hash
 
 # The directory where downloaded and added data will be stored.
-DEFAULT_DATA_DIRECTORY = Path.home() / '.wn_data'
-DATABASE_FILENAME = 'wn.db'
+DEFAULT_DATA_DIRECTORY = Path.home() / ".wn_data"
+DATABASE_FILENAME = "wn.db"
 
 
 class WNConfig:
-
     def __init__(self):
         self._data_directory = DEFAULT_DATA_DIRECTORY
         self._projects = {}
         self._dbpath = self._data_directory / DATABASE_FILENAME
         self.allow_multithreading = False
         self.match_on_keywords = []
+        self.enable_cache = False
 
     @property
     def data_directory(self) -> Path:
@@ -38,7 +37,7 @@ class WNConfig:
     def data_directory(self, path):
         dir = Path(path).expanduser()
         if dir.exists() and not dir.is_dir():
-            raise ConfigurationError(f'path exists and is not a directory: {dir}')
+            raise ConfigurationError(f"path exists and is not a directory: {dir}")
         self._data_directory = dir
         self._dbpath = dir / DATABASE_FILENAME
 
@@ -50,7 +49,7 @@ class WNConfig:
     @property
     def downloads_directory(self):
         """The file system directory where downloads are cached."""
-        dir = self.data_directory / 'downloads'
+        dir = self.data_directory / "downloads"
         dir.mkdir(exist_ok=True)
         return dir
 
@@ -82,16 +81,16 @@ class WNConfig:
         .. _BCP 47: https://en.wikipedia.org/wiki/IETF_language_tag
         """
         if id in self._projects:
-            raise ValueError(f'project already added: {id}')
+            raise ValueError(f"project already added: {id}")
         self._projects[id] = {
-            'type': type,
-            'label': label,
-            'language': language,
-            'versions': {},
-            'license': license,
+            "type": type,
+            "label": label,
+            "language": language,
+            "versions": {},
+            "license": license,
         }
         if error:
-            self._projects[id]['error'] = error
+            self._projects[id]["error"] = error
 
     def add_project_version(
         self,
@@ -117,17 +116,17 @@ class WNConfig:
         """
         version_data: Dict[str, Any]
         if url and not error:
-            version_data = {'resource_urls': url.split()}
+            version_data = {"resource_urls": url.split()}
         elif error and not url:
-            version_data = {'error': error}
+            version_data = {"error": error}
         elif url and error:
-            raise ConfigurationError(f'{id}:{version} specifies both url and redirect')
+            raise ConfigurationError(f"{id}:{version} specifies both url and redirect")
         else:
             version_data = {}
         if license:
-            version_data['license'] = license
+            version_data["license"] = license
         project = self._projects[id]
-        project['versions'][version] = version_data
+        project["versions"][version] = version_data
 
     def get_project_info(self, arg: str) -> Dict:
         """Return information about an indexed project version.
@@ -146,33 +145,33 @@ class WNConfig:
             'Open English WordNet'
 
         """
-        id, _, version = arg.partition(':')
+        id, _, version = arg.partition(":")
         if id not in self._projects:
-            raise ProjectError(f'no such project id: {id}')
+            raise ProjectError(f"no such project id: {id}")
         project: Dict = self._projects[id]
-        if 'error' in project:
-            raise ProjectError(project['error'])
+        if "error" in project:
+            raise ProjectError(project["error"])
 
-        versions: Dict = project['versions']
-        if not version or version == '*':
-            version = next(iter(versions), '')
+        versions: Dict = project["versions"]
+        if not version or version == "*":
+            version = next(iter(versions), "")
         if not version:
-            raise ProjectError(f'no versions available for {id}')
+            raise ProjectError(f"no versions available for {id}")
         elif version not in versions:
-            raise ProjectError(f'no such version: {version!r} ({id})')
+            raise ProjectError(f"no such version: {version!r} ({id})")
         info = versions[version]
-        if 'error' in info:
-            raise ProjectError(info['error'])
+        if "error" in info:
+            raise ProjectError(info["error"])
 
-        urls = info.get('resource_urls', [])
+        urls = info.get("resource_urls", [])
 
         return dict(
             id=id,
             version=version,
-            type=project['type'],
-            label=project['label'],
-            language=project['language'],
-            license=info.get('license', project.get('license')),
+            type=project["type"],
+            label=project["label"],
+            language=project["language"],
+            license=info.get("license", project.get("license")),
             resource_urls=urls,
             cache=_get_cache_path_for_urls(self, urls),
         )
@@ -197,35 +196,35 @@ class WNConfig:
         to the indexed project.
 
         """
-        if 'data_directory' in data:
-            self.data_directory = data['data_directory']
-        for id, project in data.get('index', {}).items():
+        if "data_directory" in data:
+            self.data_directory = data["data_directory"]
+        for id, project in data.get("index", {}).items():
             if id in self._projects:
                 # validate that they are the same
                 _project = self._projects[id]
-                for attr in ('label', 'language', 'license'):
+                for attr in ("label", "language", "license"):
                     if attr in project and project[attr] != _project[attr]:
-                        raise ConfigurationError(f'{attr} mismatch for {id}')
+                        raise ConfigurationError(f"{attr} mismatch for {id}")
             else:
                 self.add_project(
                     id,
-                    type=project.get('type', _WORDNET),
-                    label=project.get('label'),
-                    language=project.get('language'),
-                    license=project.get('license'),
-                    error=project.get('error'),
+                    type=project.get("type", _WORDNET),
+                    label=project.get("label"),
+                    language=project.get("language"),
+                    license=project.get("license"),
+                    error=project.get("error"),
                 )
-            for version, info in project.get('versions', {}).items():
-                if 'url' in info and 'error' in project:
+            for version, info in project.get("versions", {}).items():
+                if "url" in info and "error" in project:
                     raise ConfigurationError(
-                        f'{id}:{version} url specified with default error'
+                        f"{id}:{version} url specified with default error"
                     )
                 self.add_project_version(
                     id,
                     version,
-                    url=info.get('url'),
-                    license=info.get('license'),
-                    error=info.get('error'),
+                    url=info.get("url"),
+                    license=info.get("license"),
+                    error=info.get("error"),
                 )
 
     def load_index(self, path: AnyPath) -> None:
@@ -249,12 +248,12 @@ class WNConfig:
 
         """
         path = Path(path).expanduser()
-        with path.open('rb') as indexfile:
+        with path.open("rb") as indexfile:
             try:
                 index = tomli.load(indexfile)
             except tomli.TOMLDecodeError as exc:
-                raise ConfigurationError('malformed index file') from exc
-        self.update({'index': index})
+                raise ConfigurationError("malformed index file") from exc
+        self.update({"index": index})
 
 
 def _get_cache_path_for_urls(
@@ -269,5 +268,5 @@ def _get_cache_path_for_urls(
 
 
 config = WNConfig()
-with resources.path('wn', 'index.toml') as index_path:
+with resources.path("wn", "index.toml") as index_path:
     config.load_index(index_path)

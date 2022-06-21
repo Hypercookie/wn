@@ -1,4 +1,3 @@
-
 """Synset similarity metrics."""
 
 from typing import List
@@ -37,12 +36,12 @@ def path(synset1: Synset, synset2: Synset, simulate_root: bool = False) -> float
         >>> path(flip, turn_over, simulate_root=True)
         0.16666666666666666
 
-     """
+    """
     _check_if_pos_compatible(synset1.pos, synset2.pos)
     try:
         path = synset1.shortest_path(synset2, simulate_root=simulate_root)
     except wn.Error:
-        distance = float('inf')
+        distance = float("inf")
     else:
         distance = len(path)
     return 1 / (distance + 1)
@@ -83,14 +82,11 @@ def wup(synset1: Synset, synset2: Synset, simulate_root=False) -> float:
     i = len(synset1.shortest_path(lcs, simulate_root=simulate_root))
     j = len(synset2.shortest_path(lcs, simulate_root=simulate_root))
     k = lcs.max_depth() + 1
-    return (2*k) / (i + j + 2*k)
+    return (2 * k) / (i + j + 2 * k)
 
 
 def lch(
-    synset1: Synset,
-    synset2: Synset,
-    max_depth: int,
-    simulate_root: bool = False
+    synset1: Synset, synset2: Synset, max_depth: int, simulate_root: bool = False
 ) -> float:
     """Return the Leacock-Chodorow similarity between *synset1* and *synset2*.
 
@@ -123,7 +119,7 @@ def lch(
     _check_if_pos_compatible(synset1.pos, synset2.pos)
     distance = len(synset1.shortest_path(synset2, simulate_root=simulate_root))
     if max_depth <= 0:
-        raise wn.Error('max_depth must be greater than 0')
+        raise wn.Error("max_depth must be greater than 0")
     return -math.log((distance + 1) / (2 * max_depth))
 
 
@@ -180,7 +176,7 @@ def jcn(synset1: Synset, synset2: Synset, ic: Freq) -> float:
     if ic1 == ic2 == ic_lcs == 0:
         return 0
     elif ic1 + ic2 == 2 * ic_lcs:
-        return float('inf')
+        return float("inf")
     else:
         return 1 / (ic1 + ic2 - 2 * ic_lcs)
 
@@ -216,14 +212,13 @@ def lin(synset1: Synset, synset2: Synset, ic: Freq) -> float:
 
 # Helper functions
 
+
 def _least_common_subsumers(
-    synset1: Synset,
-    synset2: Synset,
-    simulate_root: bool
+    synset1: Synset, synset2: Synset, simulate_root: bool
 ) -> List[Synset]:
     lcs = synset1.lowest_common_hypernyms(synset2, simulate_root=simulate_root)
     if not lcs:
-        raise wn.Error(f'no common hypernyms for {synset1!r} and {synset2!r}')
+        raise wn.Error(f"no common hypernyms for {synset1!r} and {synset2!r}")
     return lcs
 
 
@@ -237,4 +232,4 @@ def _check_if_pos_compatible(pos1: str, pos2: str) -> None:
     _pos1 = ADJ if pos1 == ADJ_SAT else pos1
     _pos2 = ADJ if pos2 == ADJ_SAT else pos2
     if _pos1 != _pos2:
-        raise wn.Error('synsets must have the same part of speech')
+        raise wn.Error("synsets must have the same part of speech")

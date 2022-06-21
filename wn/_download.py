@@ -1,4 +1,3 @@
-
 from typing import Optional, Type, List, Sequence, Tuple
 from pathlib import Path
 import logging
@@ -16,13 +15,13 @@ CHUNK_SIZE = 8 * 1024  # how many KB to read at a time
 TIMEOUT = 10  # number of seconds to wait for a server response
 
 
-logger = logging.getLogger('wn')
+logger = logging.getLogger("wn")
 
 
 def download(
-        project_or_url: str,
-        add: bool = True,
-        progress_handler: Optional[Type[ProgressHandler]] = ProgressBar,
+    project_or_url: str,
+    add: bool = True,
+    progress_handler: Optional[Type[ProgressHandler]] = ProgressBar,
 ) -> Path:
     """Download the resource specified by *project_or_url*.
 
@@ -53,18 +52,18 @@ def download(
     """
     if progress_handler is None:
         progress_handler = ProgressHandler
-    progress = progress_handler(message='Download', unit=' bytes')
+    progress = progress_handler(message="Download", unit=" bytes")
 
     cache_path, urls = _get_cache_path_and_urls(project_or_url)
 
     try:
         if cache_path and cache_path.exists():
-            progress.flash(f'Cached file found: {cache_path!s}')
+            progress.flash(f"Cached file found: {cache_path!s}")
             path = cache_path
         elif urls:
             path = _download(urls, progress)
         else:
-            raise wn.Error('no urls to download')
+            raise wn.Error("no urls to download")
     finally:
         progress.close()
 
@@ -73,8 +72,8 @@ def download(
             add_to_db(path, progress_handler=progress_handler)
         except wn.Error as exc:
             raise wn.Error(
-                f'could not add downloaded file: {path}\n  You might try '
-                'deleting the cached file and trying the download again.'
+                f"could not add downloaded file: {path}\n  You might try "
+                "deleting the cached file and trying the download again."
             ) from exc
 
     return path
@@ -85,41 +84,41 @@ def _get_cache_path_and_urls(project_or_url: str) -> Tuple[Optional[Path], List[
         return config.get_cache_path(project_or_url), [project_or_url]
     else:
         info = config.get_project_info(project_or_url)
-        return info.get('cache'), info['resource_urls']
+        return info.get("cache"), info["resource_urls"]
 
 
 def _download(urls: Sequence[str], progress: ProgressHandler) -> Path:
     try:
         for i, url in enumerate(urls, 1):
             path = config.get_cache_path(url)
-            logger.info('download url: %s', url)
-            logger.info('download cache path: %s', path)
+            logger.info("download url: %s", url)
+            logger.info("download cache path: %s", path)
             try:
-                with open(path, 'wb') as f:
-                    progress.set(status='Requesting', count=0)
+                with open(path, "wb") as f:
+                    progress.set(status="Requesting", count=0)
                     with requests.get(url, stream=True, timeout=TIMEOUT) as response:
                         response.raise_for_status()
-                        size = int(response.headers.get('Content-Length', 0))
-                        progress.set(total=size, status='Receiving')
+                        size = int(response.headers.get("Content-Length", 0))
+                        progress.set(total=size, status="Receiving")
                         for chunk in response.iter_content(chunk_size=CHUNK_SIZE):
                             if chunk:
                                 f.write(chunk)
                             progress.update(len(chunk))
-                        progress.set(status='Complete')
+                        progress.set(status="Complete")
             except requests.exceptions.RequestException as exc:
                 _unlink_if_exists(path)
-                count = progress.kwargs['count']
+                count = progress.kwargs["count"]
                 if i == len(urls):
-                    raise wn.Error(f'download failed at {count} bytes') from exc
+                    raise wn.Error(f"download failed at {count} bytes") from exc
                 else:
-                    logger.info('download failed at %d bytes; trying next url', count)
+                    logger.info("download failed at %d bytes; trying next url", count)
             else:
                 break  # success
 
     except KeyboardInterrupt as exc:
         _unlink_if_exists(path)
-        count = progress.kwargs['count']
-        raise wn.Error(f'download cancelled at {count} bytes') from exc
+        count = progress.kwargs["count"]
+        raise wn.Error(f"download cancelled at {count} bytes") from exc
     except Exception:
         _unlink_if_exists(path)
         raise

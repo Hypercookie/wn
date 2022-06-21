@@ -51,7 +51,8 @@ from wn._queries import (
     get_adjposition,
     get_sense_counts,
     get_lexfile,
-    match_for_keyword_in_hypernym_graph, refresh_keyword_matching_table
+    match_for_keyword_in_hypernym_graph,
+    refresh_keyword_matching_table,
 )
 from wn import taxonomy
 
@@ -245,7 +246,8 @@ class Lexicon(_DatabaseEntity):
         substrings.extend(
             [
                 f"  Synsets: {_desc_counts(find_synsets, _id)}",
-                f"  ILIs   : {sum(1 for ili, *_ in find_ilis(lexicon_rowids=(_id,))):>6}",
+                f"  ILIs   : "
+                f"{sum(1 for ili, *_ in find_ilis(lexicon_rowids=(_id,))):>6}",
             ]
         )
         return "\n".join(substrings)
@@ -1100,22 +1102,17 @@ class Wordnet:
 
     """
 
-    cache: dict[
-        Tuple[
-            str,
-            str,
-            str,
-            Optional[NormalizeFunction],
-            Optional[NormalizeFunction],
-            bool,
-        ],
+    cache: Dict[
+        Any,
         Any,
     ] = {}
 
     @classmethod
-    def update_matching_table(cls,keyword: List[str]) -> None:
+    def update_matching_table(cls, keyword: List[str]) -> None:
         if wn.config.match_on_keywords:
-            asyncio.get_event_loop().create_task(refresh_keyword_matching_table(keyword))
+            asyncio.get_event_loop().create_task(
+                refresh_keyword_matching_table(keyword)
+            )
 
     @classmethod
     def get_keyword_matches(cls, term: str, keyword: List[str] = None) -> Iterator[str]:
@@ -1123,18 +1120,13 @@ class Wordnet:
 
     @classmethod
     def __getCache(
-        cls, lexicon, lang, expand, normalizer, lemmatizer, search_all_forms
+        cls, *args, **kwargs
     ):
         if (
-            lexicon,
-            lang,
-            expand,
-            normalizer,
-            lemmatizer,
-            search_all_forms,
+            args, kwargs
         ) in cls.cache:
             return cls.cache[
-                (lexicon, lang, expand, normalizer, lemmatizer, search_all_forms)
+                (args, kwargs)
             ]
 
     __slots__ = (
@@ -1149,21 +1141,21 @@ class Wordnet:
     )
     __module__ = "wn"
 
-    def __new__(
-        cls,
-        lexicon: str = None,
-        *,
-        lang: str = None,
-        expand: str = None,
-        normalizer: Optional[NormalizeFunction] = normalize_form,
-        lemmatizer: Optional[LemmatizeFunction] = None,
-        search_all_forms: bool = True,
-    ):
-        existing = cls.__getCache(lexicon, lang,expand,normalizer,lemmatizer,search_all_forms)
-        if existing:
-            return existing
-        new = super(Wordnet, cls).__new__(cls)
-        return new
+    # def __new__(
+    #     cls,
+    #     *args,**kwargs
+    # ):
+    #     if wn.config.enable_cache:
+    #         existing = cls.__getCache(
+    #            *args,**kwargs
+    #         )
+    #         if existing:
+    #             return existing
+    #         new = super(Wordnet, cls).__new__(cls,*args,**kwargs)
+    #     else:
+    #         return super(Wordnet, cls).__new__(cls,*args,**kwargs)
+    #
+    #     return new
 
     def __init__(
         self,
@@ -1175,9 +1167,18 @@ class Wordnet:
         lemmatizer: Optional[LemmatizeFunction] = None,
         search_all_forms: bool = True,
     ):
-        if (lexicon, lang,expand,normalizer,lemmatizer,search_all_forms) in self.cache:
-            return
-        self.cache[(lexicon, lang,expand,normalizer,lemmatizer,search_all_forms)] = self
+        # if (
+        #     lexicon,
+        #     lang,
+        #     expand,
+        #     normalizer,
+        #     lemmatizer,
+        #     search_all_forms,
+        # ) in self.cache:
+        #     return
+        # self.cache[
+        #     (lexicon, lang, expand, normalizer, lemmatizer, search_all_forms)
+        # ] = self
         # default mode means any lexicon is searched or expanded upon,
         # but relation traversals only target the source's lexicon
         self._default_mode = not lexicon and not lang

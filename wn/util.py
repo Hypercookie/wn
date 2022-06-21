@@ -3,10 +3,7 @@ from typing import TextIO, Callable
 import sys
 
 
-def synset_id_formatter(
-    fmt: str = '{prefix}-{offset:08}-{pos}',
-    **kwargs
-) -> Callable:
+def synset_id_formatter(fmt: str = "{prefix}-{offset:08}-{pos}", **kwargs) -> Callable:
     """Return a function for formatting synset ids.
 
     The *fmt* argument can be customized. It will be formatted using
@@ -58,22 +55,22 @@ class ProgressHandler:
     def __init__(
         self,
         *,
-        message: str = '',
+        message: str = "",
         count: int = 0,
         total: int = 0,
         refresh_interval: int = 0,
-        unit: str = '',
-        status: str = '',
+        unit: str = "",
+        status: str = "",
         file: TextIO = sys.stderr,
     ):
         self.file = file
         self.kwargs = {
-            'count': count,
-            'total': total,
-            'refresh_interval': refresh_interval,
-            'message': message,
-            'unit': unit,
-            'status': status,
+            "count": count,
+            "total": total,
+            "refresh_interval": refresh_interval,
+            "message": message,
+            "unit": unit,
+            "status": status,
         }
         self._refresh_quota: int = refresh_interval
 
@@ -88,7 +85,7 @@ class ProgressHandler:
         regardless of the value of the refresh interval.
 
         """
-        self.kwargs['count'] += n  # type: ignore
+        self.kwargs["count"] += n  # type: ignore
 
     def set(self, **kwargs) -> None:
         """Update progress handler parameters.
@@ -134,18 +131,18 @@ class ProgressBar(ProgressHandler):
     """
 
     #: The default formatting template.
-    FMT = '\r{message}{bar}{counter}{status}'
+    FMT = "\r{message}{bar}{counter}{status}"
 
     def update(self, n: int = 1, force: bool = False) -> None:
         """Increment the count by *n* and print the reformatted bar."""
-        self.kwargs['count'] += n  # type: ignore
+        self.kwargs["count"] += n  # type: ignore
         self._refresh_quota -= n
         if force or self._refresh_quota <= 0:
-            self._refresh_quota = self.kwargs['refresh_interval']  # type: ignore
+            self._refresh_quota = self.kwargs["refresh_interval"]  # type: ignore
             s = self.format()
             if self.file:
-                print('\r\033[K', end='', file=self.file)
-                print(s, end='', file=self.file)
+                print("\r\033[K", end="", file=self.file)
+                print(s, end="", file=self.file)
 
     def format(self) -> str:
         """Format and return the progress bar.
@@ -168,26 +165,26 @@ class ProgressBar(ProgressHandler):
         """
         _kw = self.kwargs
         width = 30
-        total: int = _kw['total']  # type: ignore
-        count: int = _kw['count']  # type: ignore
+        total: int = _kw["total"]  # type: ignore
+        count: int = _kw["count"]  # type: ignore
 
         if total > 0:
             num = min(count, total) * width
-            fill = (num // total) * '#'
+            fill = (num // total) * "#"
             part = ((num % total) * 3) // total
             if part:
-                fill += '-='[part-1]
-            bar = f' [{fill:<{width}}]'
+                fill += "-="[part - 1]
+            bar = f" [{fill:<{width}}]"
             counter = f' ({count}/{total}{_kw["unit"]}) '
         else:
-            bar = ''
+            bar = ""
             counter = f' ({count}{_kw["unit"]}) '
 
         return self.FMT.format(bar=bar, counter=counter, **_kw)
 
     def flash(self, message: str) -> None:
         """Overwrite the progress bar with *message*."""
-        print(f'\r\033[K{message}', end='', file=self.file)
+        print(f"\r\033[K{message}", end="", file=self.file)
 
     def close(self) -> None:
         """Print a newline so the last printed bar remains on screen."""

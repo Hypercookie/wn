@@ -1,11 +1,18 @@
-
 """Information Content is a corpus-based metrics of synset or sense
 specificity.
 
 """
 
 from typing import (
-    Callable, Optional, Iterator, Iterable, Dict, List, Tuple, Set, TextIO
+    Callable,
+    Optional,
+    Iterator,
+    Iterable,
+    Dict,
+    List,
+    Tuple,
+    Set,
+    TextIO,
 )
 from pathlib import Path
 from collections import Counter
@@ -74,7 +81,7 @@ def compute(
     corpus: Iterable[str],
     wordnet: Wordnet,
     distribute_weight: bool = True,
-    smoothing: float = 1.0
+    smoothing: float = 1.0,
 ) -> Freq:
     """Compute Information Content weights from a corpus.
 
@@ -217,7 +224,4 @@ def _parse_ic_file(icfile: TextIO) -> Iterator[Tuple[int, str, float, bool]]:
     next(icfile)  # skip header
     for line in icfile:
         ssinfo, value, *isroot = line.split()
-        yield (int(ssinfo[:-1]),
-               ssinfo[-1],
-               float(value),
-               bool(isroot))
+        yield (int(ssinfo[:-1]), ssinfo[-1], float(value), bool(isroot))

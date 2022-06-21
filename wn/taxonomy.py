@@ -1,4 +1,3 @@
-
 """Functions for working with hypernym/hyponym taxonomies."""
 
 from typing import Optional, Tuple, List, Set, Dict, TYPE_CHECKING
@@ -12,10 +11,10 @@ if TYPE_CHECKING:
     from wn._core import Wordnet, Synset
 
 
-_FAKE_ROOT = '*ROOT*'
+_FAKE_ROOT = "*ROOT*"
 
 
-def roots(wordnet: 'Wordnet', pos: Optional[str] = None) -> List['Synset']:
+def roots(wordnet: "Wordnet", pos: Optional[str] = None) -> List["Synset"]:
     """Return the list of root synsets in *wordnet*.
 
     Arguments:
@@ -37,7 +36,7 @@ def roots(wordnet: 'Wordnet', pos: Optional[str] = None) -> List['Synset']:
     return [ss for ss in _synsets_for_pos(wordnet, pos) if not ss.hypernyms()]
 
 
-def leaves(wordnet: 'Wordnet', pos: Optional[str] = None) -> List['Synset']:
+def leaves(wordnet: "Wordnet", pos: Optional[str] = None) -> List["Synset"]:
     """Return the list of leaf synsets in *wordnet*.
 
     Arguments:
@@ -58,7 +57,7 @@ def leaves(wordnet: 'Wordnet', pos: Optional[str] = None) -> List['Synset']:
     return [ss for ss in _synsets_for_pos(wordnet, pos) if not ss.hyponyms()]
 
 
-def taxonomy_depth(wordnet: 'Wordnet', pos: str) -> int:
+def taxonomy_depth(wordnet: "Wordnet", pos: str) -> int:
     """Return the list of leaf synsets in *wordnet*.
 
     Arguments:
@@ -77,7 +76,7 @@ def taxonomy_depth(wordnet: 'Wordnet', pos: str) -> int:
         19
 
     """
-    seen: Set['Synset'] = set()
+    seen: Set["Synset"] = set()
     depth = 0
     for ss in _synsets_for_pos(wordnet, pos):
         if all(hyp in seen for hyp in ss.hypernyms()):
@@ -89,7 +88,7 @@ def taxonomy_depth(wordnet: 'Wordnet', pos: str) -> int:
     return depth
 
 
-def _synsets_for_pos(wordnet: 'Wordnet', pos: Optional[str]) -> List['Synset']:
+def _synsets_for_pos(wordnet: "Wordnet", pos: Optional[str]) -> List["Synset"]:
     """Get the list of synsets for a part of speech. If *pos* is 'a' or
     's', also include those for the other.
 
@@ -103,9 +102,9 @@ def _synsets_for_pos(wordnet: 'Wordnet', pos: Optional[str]) -> List['Synset']:
 
 
 def _hypernym_paths(
-        synset: 'Synset', simulate_root: bool, include_self: bool
-) -> List[List['Synset']]:
-    paths = list(synset.relation_paths('hypernym', 'instance_hypernym'))
+    synset: "Synset", simulate_root: bool, include_self: bool
+) -> List[List["Synset"]]:
+    paths = list(synset.relation_paths("hypernym", "instance_hypernym"))
     if include_self:
         paths = [[synset] + path for path in paths] or [[synset]]
     if simulate_root and synset.id != _FAKE_ROOT:
@@ -117,9 +116,8 @@ def _hypernym_paths(
 
 
 def hypernym_paths(
-    synset: 'Synset',
-    simulate_root: bool = False
-) -> List[List['Synset']]:
+    synset: "Synset", simulate_root: bool = False
+) -> List[List["Synset"]]:
     """Return the list of hypernym paths to a root synset.
 
     Arguments:
@@ -163,7 +161,7 @@ def hypernym_paths(
     return _hypernym_paths(synset, simulate_root, False)
 
 
-def min_depth(synset: 'Synset', simulate_root: bool = False) -> int:
+def min_depth(synset: "Synset", simulate_root: bool = False) -> int:
     """Return the minimum taxonomy depth of the synset.
 
     Arguments:
@@ -183,11 +181,11 @@ def min_depth(synset: 'Synset', simulate_root: bool = False) -> int:
     """
     return min(
         (len(path) for path in synset.hypernym_paths(simulate_root=simulate_root)),
-        default=0
+        default=0,
     )
 
 
-def max_depth(synset: 'Synset', simulate_root: bool = False) -> int:
+def max_depth(synset: "Synset", simulate_root: bool = False) -> int:
     """Return the maximum taxonomy depth of the synset.
 
     Arguments:
@@ -207,13 +205,13 @@ def max_depth(synset: 'Synset', simulate_root: bool = False) -> int:
     """
     return max(
         (len(path) for path in synset.hypernym_paths(simulate_root=simulate_root)),
-        default=0
+        default=0,
     )
 
 
 def _shortest_hyp_paths(
-        synset: 'Synset', other: 'Synset', simulate_root: bool
-) -> Dict[Tuple['Synset', int], List['Synset']]:
+    synset: "Synset", other: "Synset", simulate_root: bool
+) -> Dict[Tuple["Synset", int], List["Synset"]]:
     if synset == other:
         return {(synset, 0): []}
 
@@ -226,22 +224,22 @@ def _shortest_hyp_paths(
 
     # Compute depths of common hypernyms from their distances.
     # Doing this now avoid more expensive lookups later.
-    depths: Dict['Synset', int] = {}
+    depths: Dict["Synset", int] = {}
     # subpaths accumulates paths to common hypernyms from both sides
-    subpaths: Dict['Synset', Tuple[List[List['Synset']], List[List['Synset']]]]
+    subpaths: Dict["Synset", Tuple[List[List["Synset"]], List[List["Synset"]]]]
     subpaths = {ss: ([], []) for ss in common}
     for which, paths in (0, from_self), (1, from_other):
         for path in paths:
             for dist, ss in enumerate(path):
                 if ss in common:
                     # synset or other subpath to ss (not including ss)
-                    subpaths[ss][which].append(path[:dist + 1])
+                    subpaths[ss][which].append(path[: dist + 1])
                     # keep maximum depth
                     depth = len(path) - dist - 1
                     if ss not in depths or depths[ss] < depth:
                         depths[ss] = depth
 
-    shortest: Dict[Tuple['Synset', int], List['Synset']] = {}
+    shortest: Dict[Tuple["Synset", int], List["Synset"]] = {}
     for ss in common:
         from_self_subpaths, from_other_subpaths = subpaths[ss]
         shortest_from_self = min(from_self_subpaths, key=len)
@@ -253,8 +251,8 @@ def _shortest_hyp_paths(
 
 
 def shortest_path(
-        synset: 'Synset', other: 'Synset', simulate_root: bool = False
-) -> List['Synset']:
+    synset: "Synset", other: "Synset", simulate_root: bool = False
+) -> List["Synset"]:
     """Return the shortest path from *synset* to the *other* synset.
 
     Arguments:
@@ -280,13 +278,13 @@ def shortest_path(
     pathmap = _shortest_hyp_paths(synset, other, simulate_root)
     key = min(pathmap, key=lambda key: len(pathmap[key]), default=None)
     if key is None:
-        raise wn.Error(f'no path between {synset!r} and {other!r}')
+        raise wn.Error(f"no path between {synset!r} and {other!r}")
     return pathmap[key][1:]
 
 
 def common_hypernyms(
-        synset: 'Synset', other: 'Synset', simulate_root: bool = False
-) -> List['Synset']:
+    synset: "Synset", other: "Synset", simulate_root: bool = False
+) -> List["Synset"]:
     """Return the common hypernyms for the current and *other* synsets.
 
     Arguments:
@@ -322,8 +320,8 @@ def common_hypernyms(
 
 
 def lowest_common_hypernyms(
-        synset: 'Synset', other: 'Synset', simulate_root: bool = False
-) -> List['Synset']:
+    synset: "Synset", other: "Synset", simulate_root: bool = False
+) -> List["Synset"]:
     """Return the common hypernyms furthest from the root.
 
     Arguments:
