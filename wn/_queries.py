@@ -147,6 +147,8 @@ def match_for_keyword_in_hypernym_graph(
         and not refreshing
     ):
         refreshing = True
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
         asyncio.get_event_loop().create_task(refresh_keyword_matching_table(keywords))
         print(schema_hash(connect()))
     if not refreshing and keywords == wn.config.match_on_keywords:
