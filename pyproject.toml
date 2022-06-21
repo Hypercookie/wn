@@ -60,6 +60,7 @@ doc = [
 editor = [
     "wn-editor"
 ]
+
 [project.urls]
 homepage = "https://github.com/Hypercookie/wn"
 documentation = "https://wn.readthedocs.io"
