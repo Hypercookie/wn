@@ -1119,14 +1119,23 @@ class Wordnet:
         return (x[0] for x in match_for_keyword_in_hypernym_graph(term, keyword))
 
     @classmethod
+    def resetCache(cls):
+        cls.cache = {}
+
+    @classmethod
     def __getCache(
-        cls, *args, **kwargs
+        cls, lexicon, lang, expand, normalizer, lemmatizer, search_all_forms
     ):
         if (
-            args, kwargs
+            lexicon,
+            lang,
+            expand,
+            normalizer,
+            lemmatizer,
+            search_all_forms,
         ) in cls.cache:
             return cls.cache[
-                (args, kwargs)
+                (lexicon, lang, expand, normalizer, lemmatizer, search_all_forms)
             ]
 
     __slots__ = (
@@ -1141,21 +1150,23 @@ class Wordnet:
     )
     __module__ = "wn"
 
-    # def __new__(
-    #     cls,
-    #     *args,**kwargs
-    # ):
-    #     if wn.config.enable_cache:
-    #         existing = cls.__getCache(
-    #            *args,**kwargs
-    #         )
-    #         if existing:
-    #             return existing
-    #         new = super(Wordnet, cls).__new__(cls,*args,**kwargs)
-    #     else:
-    #         return super(Wordnet, cls).__new__(cls,*args,**kwargs)
-    #
-    #     return new
+    def __new__(
+        cls,
+        lexicon: str = None,
+        *,
+        lang: str = None,
+        expand: str = None,
+        normalizer: Optional[NormalizeFunction] = normalize_form,
+        lemmatizer: Optional[LemmatizeFunction] = None,
+        search_all_forms: bool = True,
+    ):
+        existing = cls.__getCache(
+            lexicon, lang, expand, normalizer, lemmatizer, search_all_forms
+        )
+        if existing:
+            return existing
+        new = super(Wordnet, cls).__new__(cls)
+        return new
 
     def __init__(
         self,
@@ -1167,21 +1178,24 @@ class Wordnet:
         lemmatizer: Optional[LemmatizeFunction] = None,
         search_all_forms: bool = True,
     ):
-        # if (
-        #     lexicon,
-        #     lang,
-        #     expand,
-        #     normalizer,
-        #     lemmatizer,
-        #     search_all_forms,
-        # ) in self.cache:
-        #     return
-        # self.cache[
-        #     (lexicon, lang, expand, normalizer, lemmatizer, search_all_forms)
-        # ] = self
+
+        if wn.config.enable_wordnet_constructor_cache:
+            if (
+                lexicon,
+                lang,
+                expand,
+                normalizer,
+                lemmatizer,
+                search_all_forms,
+            ) in self.cache:
+                return
+            self.cache[
+                (lexicon, lang, expand, normalizer, lemmatizer, search_all_forms)
+            ] = self
+
         # default mode means any lexicon is searched or expanded upon,
         # but relation traversals only target the source's lexicon
-        self._default_mode = not lexicon and not lang
+        self._default_mode: bool = not lexicon and not lang
 
         lexs = list(find_lexicons(lexicon or "*", lang=lang))
         self._lexicons: Tuple[Lexicon, ...] = tuple(map(_to_lexicon, lexs))

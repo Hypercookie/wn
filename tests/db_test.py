@@ -47,6 +47,7 @@ def test_db_multithreading():
 
 def test_remove_extension(mini_lmf_1_0, mini_lmf_1_1):
     with tempfile.TemporaryDirectory("wn_data_1_1_trigger") as dir:
+        wn.Wordnet.resetCache()
         old_data_dir = wn.config.data_directory
         wn.config.data_directory = dir
         wn.add(mini_lmf_1_0)

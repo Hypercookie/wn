@@ -111,7 +111,7 @@ def add(
     if progress_handler is None:
         progress_handler = ProgressHandler
     progress = progress_handler(message="Database")
-
+    wn.Wordnet.resetCache()
     logger.info("adding project to database")
     logger.info("  database: %s", wn.config.database_path)
     logger.info("  project file: %s", source)
@@ -133,6 +133,7 @@ def _add_lmf(
     progress: ProgressHandler,
     progress_handler: Type[ProgressHandler],
 ) -> None:
+    wn.Wordnet.resetCache()
     with connect() as conn:
         cur = conn.cursor()
         # these two settings increase the risk of database corruption
@@ -971,7 +972,7 @@ def remove(
     if progress_handler is None:
         progress_handler = ProgressHandler
     progress = progress_handler(message="Removing", unit="\be5 operations")
-
+    wn.Wordnet.resetCache()
     conn = connect()
     conn.set_progress_handler(progress.update, 100000)
     try:

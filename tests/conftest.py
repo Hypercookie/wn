@@ -56,7 +56,9 @@ def mini_db_1_1_dir(mini_lmf_1_0, mini_lmf_1_1):
 
 @pytest.fixture
 def empty_db(monkeypatch, empty_db_dir):
+
     with monkeypatch.context() as m:
+        wn.Wordnet.resetCache()
         m.setattr(wn.config, "data_directory", empty_db_dir)
         yield
 
@@ -64,6 +66,7 @@ def empty_db(monkeypatch, empty_db_dir):
 @pytest.fixture
 def mini_db(monkeypatch, mini_db_dir):
     with monkeypatch.context() as m:
+        wn.Wordnet.resetCache()
         m.setattr(wn.config, "data_directory", mini_db_dir)
         yield
 
@@ -71,5 +74,6 @@ def mini_db(monkeypatch, mini_db_dir):
 @pytest.fixture
 def mini_db_1_1(monkeypatch, mini_db_1_1_dir):
     with monkeypatch.context() as m:
+        wn.Wordnet.resetCache()
         m.setattr(wn.config, "data_directory", mini_db_1_1_dir)
         yield

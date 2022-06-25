@@ -24,7 +24,7 @@ class WNConfig:
         self._dbpath = self._data_directory / DATABASE_FILENAME
         self.allow_multithreading = False
         self.match_on_keywords = []
-        self.enable_cache = False
+        self.enable_wordnet_constructor_cache = True
         self.enable_keyword_table = False
 
     @property
