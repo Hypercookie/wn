@@ -52,7 +52,6 @@ from wn._queries import (
     get_sense_counts,
     get_lexfile,
     match_for_keyword_in_hypernym_graph,
-    refresh_keyword_matching_table,
 )
 from wn import taxonomy
 
