@@ -25,7 +25,6 @@ class WNConfig:
         self.allow_multithreading = False
         self.match_on_keywords = []
         self.enable_wordnet_constructor_cache = True
-        self.enable_keyword_table = False
 
     @property
     def data_directory(self) -> Path:

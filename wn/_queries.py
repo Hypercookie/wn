@@ -135,24 +135,13 @@ def match_for_keyword_in_hypernym_graph(
 ) -> Iterator[Tuple[str]]:
     global refreshing
     global created
-    if not wn.config.enable_keyword_table:
-        return
     if not keywords:
         keywords = wn.config.match_on_keywords
     if not keywords:
         return
     if cur is None:
         cur = connect().cursor()
-    if (
-        not created
-        and (keywords == wn.config.match_on_keywords or recompute_with_new_keywords)
-        and not refreshing and wn.config.enable_keyword_table
-    ):
-        refreshing = True
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        asyncio.get_event_loop().create_task(refresh_keyword_matching_table(keywords))
-        print(schema_hash(connect()))
+
     if not refreshing and keywords == wn.config.match_on_keywords:
         query = """
         SELECT keyword FROM keyword_matches WHERE word = ?
