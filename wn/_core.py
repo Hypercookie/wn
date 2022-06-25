@@ -1107,13 +1107,6 @@ class Wordnet:
     ] = {}
 
     @classmethod
-    def update_matching_table(cls, keyword: List[str]) -> None:
-        if wn.config.match_on_keywords:
-            asyncio.get_event_loop().create_task(
-                refresh_keyword_matching_table(keyword)
-            )
-
-    @classmethod
     def get_keyword_matches(cls, term: str, keyword: List[str] = None) -> Iterator[str]:
         return (x[0] for x in match_for_keyword_in_hypernym_graph(term, keyword))
 

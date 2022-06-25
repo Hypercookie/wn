@@ -6,7 +6,6 @@ import itertools
 import sqlite3
 
 import wn
-from wn import DatabaseError
 from wn._types import Metadata
 from wn._db import connect, NON_ROWID
 
@@ -68,6 +67,7 @@ _Lexicon = Tuple[
 
 refreshing = False
 created = False
+
 
 def match_for_keyword_in_hypernym_graph(
     word: str, keywords: List[str] = None, cur=None, recompute_with_new_keywords=False
