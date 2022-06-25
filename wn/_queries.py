@@ -1,7 +1,6 @@
 """
 Database retrieval queries.
 """
-import asyncio
 from typing import Optional, List, Tuple, Collection, Iterator, Sequence
 import itertools
 import sqlite3
@@ -9,7 +8,7 @@ import sqlite3
 import wn
 from wn import DatabaseError
 from wn._types import Metadata
-from wn._db import connect, NON_ROWID, schema_hash
+from wn._db import connect, NON_ROWID
 
 # Local Types
 
