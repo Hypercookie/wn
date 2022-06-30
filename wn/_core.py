@@ -51,6 +51,7 @@ from wn._queries import (
     get_sense_counts,
     get_lexfile,
     match_for_keyword_in_hypernym_graph,
+    get_graph_as_table
 )
 from wn import taxonomy
 
@@ -92,11 +93,11 @@ class ILI(_DatabaseEntity):
     __module__ = "wn"
 
     def __init__(
-        self,
-        id: Optional[str],
-        status: str,
-        definition: str = None,
-        _id: int = NON_ROWID,
+            self,
+            id: Optional[str],
+            status: str,
+            definition: str = None,
+            _id: int = NON_ROWID,
     ):
         super().__init__(_id=_id)
         self.id = id
@@ -146,17 +147,17 @@ class Lexicon(_DatabaseEntity):
     _ENTITY_TYPE = "lexicons"
 
     def __init__(
-        self,
-        id: str,
-        label: str,
-        language: str,
-        email: str,
-        license: str,
-        version: str,
-        url: str = None,
-        citation: str = None,
-        logo: str = None,
-        _id: int = NON_ROWID,
+            self,
+            id: str,
+            label: str,
+            language: str,
+            email: str,
+            license: str,
+            version: str,
+            url: str = None,
+            citation: str = None,
+            logo: str = None,
+            _id: int = NON_ROWID,
     ):
         super().__init__(_id=_id)
         self.id = id
@@ -266,7 +267,8 @@ class _LexiconElement(_DatabaseEntity):
     __slots__ = "_lexid", "_wordnet"
 
     def __init__(
-        self, _lexid: int = NON_ROWID, _id: int = NON_ROWID, _wordnet: "Wordnet" = None
+            self, _lexid: int = NON_ROWID, _id: int = NON_ROWID,
+            _wordnet: "Wordnet" = None
     ):
         super().__init__(_id=_id)
         self._lexid = _lexid  # Database-internal lexicon id
@@ -294,12 +296,12 @@ class Pronunciation:
     __slots__ = "value", "variety", "notation", "phonemic", "audio"
 
     def __init__(
-        self,
-        value: str,
-        variety: str = None,
-        notation: str = None,
-        phonemic: bool = True,
-        audio: str = None,
+            self,
+            value: str,
+            variety: str = None,
+            notation: str = None,
+            phonemic: bool = True,
+            audio: str = None,
     ):
         self.value = value
         self.variety = variety
@@ -342,7 +344,7 @@ class Form(str):
     script: Optional[str]
 
     def __new__(
-        cls, form: str, id: str = None, script: str = None, _id: int = NON_ROWID
+            cls, form: str, id: str = None, script: str = None, _id: int = NON_ROWID
     ):
         obj = str.__new__(cls, form)  # type: ignore
         obj.id = id
@@ -374,13 +376,13 @@ class Word(_LexiconElement):
     _ENTITY_TYPE = "entries"
 
     def __init__(
-        self,
-        id: str,
-        pos: str,
-        forms: List[Tuple[str, Optional[str], Optional[str], int]],
-        _lexid: int = NON_ROWID,
-        _id: int = NON_ROWID,
-        _wordnet: "Wordnet" = None,
+            self,
+            id: str,
+            pos: str,
+            forms: List[Tuple[str, Optional[str], Optional[str], int]],
+            _lexid: int = NON_ROWID,
+            _id: int = NON_ROWID,
+            _wordnet: "Wordnet" = None,
     ):
         super().__init__(_lexid=_lexid, _id=_id, _wordnet=_wordnet)
         self.id = id
@@ -456,10 +458,10 @@ class Word(_LexiconElement):
         ]
 
     def translate(
-        self,
-        lexicon: str = None,
-        *,
-        lang: str = None,
+            self,
+            lexicon: str = None,
+            *,
+            lang: str = None,
     ) -> Dict["Sense", List["Word"]]:
         """Return a mapping of word senses to lists of translated words.
 
@@ -492,11 +494,11 @@ class _Relatable(_LexiconElement):
     __slots__ = ("id",)
 
     def __init__(
-        self,
-        id: str,
-        _lexid: int = NON_ROWID,
-        _id: int = NON_ROWID,
-        _wordnet: "Wordnet" = None,
+            self,
+            id: str,
+            _lexid: int = NON_ROWID,
+            _id: int = NON_ROWID,
+            _wordnet: "Wordnet" = None,
     ):
         super().__init__(_lexid=_lexid, _id=_id, _wordnet=_wordnet)
         self.id = id
@@ -551,13 +553,13 @@ class Synset(_Relatable):
     _ENTITY_TYPE = "synsets"
 
     def __init__(
-        self,
-        id: str,
-        pos: str,
-        ili: str = None,
-        _lexid: int = NON_ROWID,
-        _id: int = NON_ROWID,
-        _wordnet: "Wordnet" = None,
+            self,
+            id: str,
+            pos: str,
+            ili: str = None,
+            _lexid: int = NON_ROWID,
+            _id: int = NON_ROWID,
+            _wordnet: "Wordnet" = None,
     ):
         super().__init__(id=id, _lexid=_lexid, _id=_id, _wordnet=_wordnet)
         self.pos = pos
@@ -565,11 +567,11 @@ class Synset(_Relatable):
 
     @classmethod
     def empty(
-        cls,
-        id: str,
-        ili: str = None,
-        _lexid: int = NON_ROWID,
-        _wordnet: "Wordnet" = None,
+            cls,
+            id: str,
+            ili: str = None,
+            _lexid: int = NON_ROWID,
+            _wordnet: "Wordnet" = None,
     ):
         return cls(id, pos="", ili=ili, _lexid=_lexid, _wordnet=_wordnet)
 
@@ -769,19 +771,19 @@ class Synset(_Relatable):
         return taxonomy.max_depth(self, simulate_root=simulate_root)
 
     def shortest_path(
-        self, other: "Synset", simulate_root: bool = False
+            self, other: "Synset", simulate_root: bool = False
     ) -> List["Synset"]:
         """Return the shortest path from the synset to the *other* synset."""
         return taxonomy.shortest_path(self, other, simulate_root=simulate_root)
 
     def common_hypernyms(
-        self, other: "Synset", simulate_root: bool = False
+            self, other: "Synset", simulate_root: bool = False
     ) -> List["Synset"]:
         """Return the common hypernyms for the current and *other* synsets."""
         return taxonomy.common_hypernyms(self, other, simulate_root=simulate_root)
 
     def lowest_common_hypernyms(
-        self, other: "Synset", simulate_root: bool = False
+            self, other: "Synset", simulate_root: bool = False
     ) -> List["Synset"]:
         """Return the common hypernyms furthest from the root."""
         return taxonomy.lowest_common_hypernyms(
@@ -887,13 +889,13 @@ class Sense(_Relatable):
     _ENTITY_TYPE = "senses"
 
     def __init__(
-        self,
-        id: str,
-        entry_id: str,
-        synset_id: str,
-        _lexid: int = NON_ROWID,
-        _id: int = NON_ROWID,
-        _wordnet: "Wordnet" = None,
+            self,
+            id: str,
+            entry_id: str,
+            synset_id: str,
+            _lexid: int = NON_ROWID,
+            _id: int = NON_ROWID,
+            _wordnet: "Wordnet" = None,
     ):
         super().__init__(id=id, _lexid=_lexid, _id=_id, _wordnet=_wordnet)
         self._entry_id = entry_id
@@ -1106,6 +1108,10 @@ class Wordnet:
     ] = {}
 
     @classmethod
+    def get_graph_of_word(cls, term: str, relation='hypernym'):
+        return sorted(list(get_graph_as_table(term, relation)), key=lambda x: x[1])
+
+    @classmethod
     def get_keyword_matches(cls, term: str, keyword: List[str] = None) -> Iterator[str]:
         return (x[0] for x in match_for_keyword_in_hypernym_graph(term, keyword))
 
@@ -1115,15 +1121,15 @@ class Wordnet:
 
     @classmethod
     def __getCache(
-        cls, lexicon, lang, expand, normalizer, lemmatizer, search_all_forms
+            cls, lexicon, lang, expand, normalizer, lemmatizer, search_all_forms
     ):
         if (
-            lexicon,
-            lang,
-            expand,
-            normalizer,
-            lemmatizer,
-            search_all_forms,
+                lexicon,
+                lang,
+                expand,
+                normalizer,
+                lemmatizer,
+                search_all_forms,
         ) in cls.cache:
             return cls.cache[
                 (lexicon, lang, expand, normalizer, lemmatizer, search_all_forms)
@@ -1142,14 +1148,14 @@ class Wordnet:
     __module__ = "wn"
 
     def __new__(
-        cls,
-        lexicon: str = None,
-        *,
-        lang: str = None,
-        expand: str = None,
-        normalizer: Optional[NormalizeFunction] = normalize_form,
-        lemmatizer: Optional[LemmatizeFunction] = None,
-        search_all_forms: bool = True,
+            cls,
+            lexicon: str = None,
+            *,
+            lang: str = None,
+            expand: str = None,
+            normalizer: Optional[NormalizeFunction] = normalize_form,
+            lemmatizer: Optional[LemmatizeFunction] = None,
+            search_all_forms: bool = True,
     ):
         existing = cls.__getCache(
             lexicon, lang, expand, normalizer, lemmatizer, search_all_forms
@@ -1160,24 +1166,24 @@ class Wordnet:
         return new
 
     def __init__(
-        self,
-        lexicon: str = None,
-        *,
-        lang: str = None,
-        expand: str = None,
-        normalizer: Optional[NormalizeFunction] = normalize_form,
-        lemmatizer: Optional[LemmatizeFunction] = None,
-        search_all_forms: bool = True,
+            self,
+            lexicon: str = None,
+            *,
+            lang: str = None,
+            expand: str = None,
+            normalizer: Optional[NormalizeFunction] = normalize_form,
+            lemmatizer: Optional[LemmatizeFunction] = None,
+            search_all_forms: bool = True,
     ):
 
         if wn.config.enable_wordnet_constructor_cache:
             if (
-                lexicon,
-                lang,
-                expand,
-                normalizer,
-                lemmatizer,
-                search_all_forms,
+                    lexicon,
+                    lang,
+                    expand,
+                    normalizer,
+                    lemmatizer,
+                    search_all_forms,
             ) in self.cache:
                 return
             self.cache[
@@ -1259,7 +1265,7 @@ class Wordnet:
             raise wn.Error(f"no such synset: {id}")
 
     def synsets(
-        self, form: str = None, pos: str = None, ili: str = None
+            self, form: str = None, pos: str = None, ili: str = None
     ) -> List[Synset]:
         """Return the list of matching synsets in this wordnet.
 
@@ -1356,12 +1362,12 @@ def _to_lexicon(data) -> Lexicon:
 
 
 def _find_helper(
-    w: Wordnet,
-    cls: Type[C],
-    query_func: Callable,
-    form: Optional[str],
-    pos: Optional[str],
-    ili: str = None,
+        w: Wordnet,
+        cls: Type[C],
+        query_func: Callable,
+        form: Optional[str],
+        pos: Optional[str],
+        ili: str = None,
 ) -> List[C]:
     """Return the list of matching wordnet entities.
 
@@ -1477,11 +1483,11 @@ def word(id: str, *, lexicon: str = None, lang: str = None) -> Word:
 
 
 def words(
-    form: str = None,
-    pos: str = None,
-    *,
-    lexicon: str = None,
-    lang: str = None,
+        form: str = None,
+        pos: str = None,
+        *,
+        lexicon: str = None,
+        lang: str = None,
 ) -> List[Word]:
     """Return the list of matching words.
 
@@ -1515,12 +1521,12 @@ def synset(id: str, *, lexicon: str = None, lang: str = None) -> Synset:
 
 
 def synsets(
-    form: str = None,
-    pos: str = None,
-    ili: str = None,
-    *,
-    lexicon: str = None,
-    lang: str = None,
+        form: str = None,
+        pos: str = None,
+        ili: str = None,
+        *,
+        lexicon: str = None,
+        lang: str = None,
 ) -> List[Synset]:
     """Return the list of matching synsets.
 
@@ -1538,11 +1544,11 @@ def synsets(
 
 
 def senses(
-    form: str = None,
-    pos: str = None,
-    *,
-    lexicon: str = None,
-    lang: str = None,
+        form: str = None,
+        pos: str = None,
+        *,
+        lexicon: str = None,
+        lang: str = None,
 ) -> List[Sense]:
     """Return the list of matching senses.
 
@@ -1590,10 +1596,10 @@ def ili(id: str, *, lexicon: str = None, lang: str = None) -> ILI:
 
 
 def ilis(
-    status: str = None,
-    *,
-    lexicon: str = None,
-    lang: str = None,
+        status: str = None,
+        *,
+        lexicon: str = None,
+        lang: str = None,
 ) -> List[ILI]:
     """Return the list of matching interlingual indices.
 
